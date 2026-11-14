@@ -1,0 +1,46 @@
+# Caddy 反向代理配置
+#
+# 作用：
+#   1. 自动申请并续期 HTTPS 证书
+#   2. /api/* 转发给后端，其余请求交给前端静态文件
+#   3. 统一注入安全响应头（后端也注入一份，这里是兜底）
+#
+# 使用前把 {$DOMAIN} 换成你的域名，或者用环境变量注入。
+
+{
+	email {$ACME_EMAIL:admin@example.com}
+}
+
+{$DOMAIN:localhost} {
+	encode zstd gzip
+
+	# 后端 API
+	handle /api/* {
+		reverse_proxy api:8000
+	}
+
+	# 前端 SPA：找不到文件一律回 index.html，交给前端路由
+	handle {
+		root * /srv
+		try_files {path} /index.html
+		file_server
+	}
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "geolocation=(), camera=(), microphone=()"
+		-Server
+	}
+
+	# 静态资源长缓存，index.html 不缓存
+	@assets path /assets/*
+	header @assets Cache-Control "public, max-age=31536000, immutable"
+
+	log {
+		output stdout
+		format json
+	}
+}
