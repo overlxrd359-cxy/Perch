@@ -1,58 +1,14 @@
-"""请求 ID 与访问日志。
+"""请求 ID 与访问日志中间件。
 
-每个请求分配一个 request_id（优先复用上游传入的 X-Request-ID），
-写入 ContextVar，后续所有日志自动带上，响应头也回传，便于端到端排查。
+职责：
+- 复用上游 X-Request-ID，没有则生成
+- 写入 ContextVar，响应头回传
+- 记录访问日志（method / path / status / duration_ms）
+
+TODO(M0)：
+- [ ] BaseHTTPMiddleware 实现
+- [ ] 异常路径也要 reset ContextVar
+- [ ] 响应头设置 X-Request-ID
+
+注意：本中间件必须最后 add_middleware，才能包住 CORS 的异常响应。
 """
-
-from __future__ import annotations
-
-import logging
-import time
-import uuid
-
-from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
-from starlette.requests import Request
-from starlette.responses import Response
-
-from app.core.logging import request_id_ctx
-
-access_logger = logging.getLogger("app.access")
-
-
-class RequestIdMiddleware(BaseHTTPMiddleware):
-    async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
-        request_id = request.headers.get("X-Request-ID") or uuid.uuid4().hex[:16]
-        token = request_id_ctx.set(request_id)
-        started = time.perf_counter()
-
-        try:
-            response = await call_next(request)
-        except Exception:
-            duration_ms = round((time.perf_counter() - started) * 1000, 2)
-            access_logger.exception(
-                "request failed",
-                extra={
-                    "method": request.method,
-                    "path": request.url.path,
-                    "duration_ms": duration_ms,
-                    "client_ip": request.client.host if request.client else None,
-                },
-            )
-            request_id_ctx.reset(token)
-            raise
-
-        duration_ms = round((time.perf_counter() - started) * 1000, 2)
-        access_logger.info(
-            "request completed",
-            extra={
-                "method": request.method,
-                "path": request.url.path,
-                "status": response.status_code,
-                "duration_ms": duration_ms,
-                "client_ip": request.client.host if request.client else None,
-            },
-        )
-
-        request_id_ctx.reset(token)
-        response.headers["X-Request-ID"] = request_id
-        return response

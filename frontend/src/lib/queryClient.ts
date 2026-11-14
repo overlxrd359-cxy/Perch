@@ -1,14 +1,7 @@
-import { QueryClient } from '@tanstack/react-query'
-
-export const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: 1,
-      refetchOnWindowFocus: false,
-      staleTime: 30_000,
-    },
-    mutations: {
-      retry: 0,
-    },
-  },
-})
+/**
+ * TanStack Query 客户端。
+ *
+ * TODO(M0)：
+ * - [ ] retry / staleTime / refetchOnWindowFocus 默认值
+ */
+export {}
