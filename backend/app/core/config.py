@@ -111,7 +111,7 @@ def _load_settings() -> Settings:
 
 
 def get_settings() -> Settings:
-    """进程内单例。测试改动环境变量后调用 get_settings.cache_clear()。"""
+    """进程内单例。测试需要重新读取环境变量时，调用 ``_load_settings.cache_clear()``。"""
     try:
         return _load_settings()
     except ValidationError as exc:

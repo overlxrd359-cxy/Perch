@@ -60,6 +60,9 @@ M11 加分项            ░░░░░░░░░░  ⬜  弹性
 | 前端 `npm run dev` 不是白屏 | ✅ 首页 / 找座 / 管理端壳均可访问 |
 | `make lint` 与 `make test` 全绿 | ✅ ruff + mypy 29 文件；13 条测试 |
 
+**配套笔记**：配置优先级、中间件顺序、ContextVar、探针语义、ORM 会话、Alembic 等知识点，
+在 **[note/](./note/README.md)** 下有展开讲解与代码逐段剖析。
+
 **给后面留的约定**
 
 - 时间只从 `app/core/time.py` 走，业务代码禁止裸 `datetime.now()`
@@ -212,6 +215,7 @@ M11 加分项            ░░░░░░░░░░  ⬜  弹性
 │   └── scripts/backup.sh       数据库备份
 │
 ├── docs/architecture.md        分层与约定
+├── note/                       开发笔记：每阶段的技术知识点讲解
 ├── docker-compose.yml          开发依赖（MySQL / Redis / Qdrant）
 ├── Makefile                    常用命令
 ├── .env.example                环境变量模板
@@ -345,6 +349,7 @@ docs(plan): 勾选 M0-2
 | `项目计划书-智能自习室预约系统.md` | 15 周排期、每周交付与验收、风险登记册 |
 | `项目方案-智能自习室预约系统-v2完整版.md` | 产品定义、表结构、安全设计、并发方案、AI 设计 |
 | `docs/architecture.md` | 分层、目录职责、请求生命周期、一致性策略 |
+| **[note/](./note/README.md)** | 开发笔记：M0 的技术栈讲解（配置 / FastAPI / 日志 / 健康检查 / ORM / Redis / 前端） |
 
 ---
 
