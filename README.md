@@ -32,6 +32,51 @@ M11 加分项            ░░░░░░░░░░  ⬜  弹性
 
 ---
 
+## 阶段复盘
+
+> 每完成一个阶段在这里留一段：做了什么、验收怎么过的、给后面留了什么约束。
+> 任务明细与勾选记录见 **[PLAN.md](./PLAN.md)**，这里只写结论。
+
+### M0 · 工程地基（2026-11-15 完成）
+
+**交付**
+
+- **配置**：`core/config.py` 用 pydantic-settings 统一加载，缺 `SECRET_KEY` / 长度不足直接退出并列出缺项；`prod` 下拦截 `DEBUG=true` 与示例密钥
+- **可观测**：单行 JSON 日志 + `X-Request-ID` 中间件（复用上游、非法值替换、响应头回传、异常路径也 reset）
+- **错误契约**：`AppError` + 6 个子类 + 四个 handler，响应体固定 `{code, message, request_id}`，兜底不吐堆栈
+- **健康检查**：`/healthz` 只探进程；`/readyz` 并发探 MySQL/Redis，单探测 2s 超时，失败 503 但进程不崩
+- **数据层**：异步 engine（懒连接、`pool_pre_ping`）、`get_session()` 异常回滚、`Base` + `IntPKMixin` / `TimestampMixin`、`core/time.py` 统一 UTC 转换
+- **迁移**：Alembic 接管 `Base.metadata`，打开 `compare_type` / `compare_server_default`，`alembic check` 无差异
+- **前端**：双端路由 + 三套布局（Auth / User / Admin）+ 占位页；`RequireAuth` 与登录态刻意留到 M1-15
+
+**验收**（PLAN M0 六条全过）
+
+| 验收项 | 结果 |
+| --- | --- |
+| `make backend` 起得来 | ✅ 127.0.0.1:8000 |
+| `/healthz` 返回 200 且带 `x-request-id` | ✅ |
+| `/readyz` 依赖挂掉返回 503 而不崩 | ✅ 503 + 进程存活 |
+| 缺配置时给出明确缺项 | ✅ 列出 `secret_key` 并退出 |
+| 前端 `npm run dev` 不是白屏 | ✅ 首页 / 找座 / 管理端壳均可访问 |
+| `make lint` 与 `make test` 全绿 | ✅ ruff + mypy 29 文件；13 条测试 |
+
+**给后面留的约定**
+
+- 时间只从 `app/core/time.py` 走，业务代码禁止裸 `datetime.now()`
+- 业务异常只抛 `AppError` 子类，路由里不手写 `JSONResponse`
+- 健康检查固定在根路径（生产 compose 与 Caddy 都按 `/healthz` 探活）
+- `tests/conftest.py` 在 import app 之前设置环境变量，新测试别绕开
+- 前端路由守卫尚未接入，M1-15 补，别提前假设登录态存在
+
+**踩坑记录**
+
+- Docker Desktop 处于 manually paused：`docker desktop restart` 解除
+- 本机 3306 被系统 MySQL 占用：本地 `.env` 改 3307，项目默认值仍 3306
+- asyncmy 连 MySQL 8 需要 `cryptography`，已加入 `pyproject.toml`
+- shell 里的 `DATABASE_URL` / `MYSQL_PORT` 会覆盖 `.env`：连错库时先 `env | grep DATABASE_URL`
+
+---
+
 ## 为什么做这个
 
 自习室座位靠"人肉占座 + 群里喊"，导致三个问题：
