@@ -10,6 +10,7 @@ dependencies = [
     "pydantic-settings>=2.6.0",
     "sqlalchemy[asyncio]>=2.0.36",
     "asyncmy>=0.2.9",
+    "cryptography>=43.0.0",  # MySQL caching_sha2_password 认证需要
     "alembic>=1.14.0",
     "redis>=5.2.0",
     "pyjwt>=2.10.0",
@@ -39,7 +40,7 @@ package = true
 [tool.ruff]
 line-length = 100
 target-version = "py312"
-src = ["app", "tests"]
+src = ["."]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "N", "UP", "B", "SIM", "ASYNC", "S", "RUF"]
@@ -49,10 +50,11 @@ ignore = [
     "RUF001", # 中文全角标点在中文文案里是正常的
     "RUF002",
     "RUF003",
+    "N818",  # 领域异常用 BadRequest/NotFound 这类名字，加 Error 后缀反而啰嗦
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/*" = ["S101", "S105", "S106"]
+"tests/*" = ["S101", "S105", "S106", "E402"]  # E402：conftest 必须先设环境变量再 import app
 "alembic/*" = ["E501"]
 
 [tool.mypy]

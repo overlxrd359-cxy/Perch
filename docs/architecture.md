@@ -56,7 +56,7 @@ models/         SQLAlchemy 模型
 ## 时间处理
 
 - 数据库统一存 UTC 的 `DATETIME`（不带时区）。
-- 全部转换集中在 `app/core/time.py`（M1 建立）。
+- 全部转换集中在 `app/core/time.py`（M0 已建立）。
 - 业务代码禁止直接 `datetime.now()`。
 
 ## 鉴权
