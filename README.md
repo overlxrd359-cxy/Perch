@@ -1,4 +1,4 @@
-# Campus Seat · 智能自习室预约系统
+# Perch · 智能自习室预约系统
 
 > **状态：骨架阶段（M0 进行中）**
 > 目录、配置、部署脚本、文档已就位；业务实现尚未开始。
@@ -252,7 +252,7 @@ make health        # 查看后端健康状态
 | 变量 | 必填 | 说明 |
 | --- | --- | --- |
 | `SECRET_KEY` | ✅ | JWT 签名密钥，≥32 位。生成：`openssl rand -hex 32` |
-| `ENV` | | `dev` / `test` / `prod`，默认 `dev` |
+| `APP_ENV` | | `dev` / `test` / `prod`，默认 `dev`（不要叫 `ENV`：它是 DSH 启动保留变量，会让 `dsh`/`dst` 在该目录下拒绝启动） |
 | `DEBUG` | | 生产必须 `false` |
 | `DATABASE_URL` | | MySQL 连接串，需带 `?charset=utf8mb4` |
 | `REDIS_URL` | | Redis 连接串 |
